@@ -8,7 +8,7 @@ const port = process.env.PORT || 3000;
 
 // ✅ CORS for your frontend origin
 const corsOptions = {
-  origin: 'https://lucky-wheel-1-a0wa.onrender.com',
+  origin: '*', // Allow all
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: false
