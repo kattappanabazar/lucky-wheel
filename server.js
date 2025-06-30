@@ -7,20 +7,25 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ CORS SETUP (Fixes CORS properly)
-app.use(cors({
-  origin: '*', // or use your exact domain here
+// ✅ CORS Setup (Replace '*' with your actual frontend origin)
+const corsOptions = {
+  origin: 'https://lucky-wheel-1-a0wa.onrender.com',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
-  credentials: false // use true only if you're sending cookies
-}));
+  credentials: false
+};
 
-// ✅ Handle preflight requests
-app.options('*', cors());
+app.use(cors(corsOptions));
+
+// ✅ Debug Middleware (Optional: logs incoming origin headers)
+app.use((req, res, next) => {
+  console.log('Incoming Origin:', req.headers.origin);
+  next();
+});
 
 app.use(bodyParser.json());
 
-// DB setup
+// ✅ SQLite DB Setup
 const db = new sqlite3.Database('./wheel.db', (err) => {
   if (err) console.error('DB error:', err.message);
   else console.log('Connected to database.');
@@ -33,7 +38,7 @@ db.run(`CREATE TABLE IF NOT EXISTS players (
   lastSpin TEXT
 )`);
 
-// Register new player
+// ✅ Register new player
 app.post('/register', (req, res) => {
   const { name } = req.body;
   db.run('INSERT OR IGNORE INTO players (name) VALUES (?)', [name], (err) => {
@@ -42,7 +47,7 @@ app.post('/register', (req, res) => {
   });
 });
 
-// Get player data
+// ✅ Get player data
 app.get('/player/:name', (req, res) => {
   db.get('SELECT * FROM players WHERE name = ?', [req.params.name], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -51,7 +56,7 @@ app.get('/player/:name', (req, res) => {
   });
 });
 
-// Update player after spin
+// ✅ Update player after spin
 app.post('/update', (req, res) => {
   const { name, points, spinsLeft, lastSpin } = req.body;
   db.run('UPDATE players SET points = ?, spinsLeft = ?, lastSpin = ? WHERE name = ?', 
@@ -62,7 +67,7 @@ app.post('/update', (req, res) => {
     });
 });
 
-// Leaderboard
+// ✅ Leaderboard endpoint
 app.get('/leaderboard', (req, res) => {
   db.all('SELECT * FROM players ORDER BY points DESC LIMIT 10', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -70,6 +75,7 @@ app.get('/leaderboard', (req, res) => {
   });
 });
 
+// ✅ Start server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
