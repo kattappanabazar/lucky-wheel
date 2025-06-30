@@ -10,7 +10,11 @@ const app = express();
 const PORT = 3000;
 
 // Middleware
-app.use(cors({ origin: 'https://kattappanabazar.store' }));
+const cors = require('cors');
+app.use(cors({
+  origin: 'https://lucky-wheel-1-a0wa.onrender.com'
+}));
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
