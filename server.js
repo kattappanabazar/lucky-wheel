@@ -8,8 +8,15 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: 'https://lucky-wheel-1-a0wa.onrender.com'
+  origin: 'https://lucky-wheel-1-a0wa.onrender.com',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true
 }));
+
+// Handle preflight requests (important!)
+app.options('*', cors());
+
 app.use(bodyParser.json());
 
 // DB setup
