@@ -145,22 +145,29 @@ function spinWheel() {
   animate();
 }
 
-async function finishSpin(prizeIndex) {
+async function finishSpin(finalAngle) {
   spinning = false;
-  currentRotation %= (2 * Math.PI);
   spinBtn.disabled = false;
 
+  const segmentAngle = (2 * Math.PI) / prizes.length;
+
+  // 🧠 Calculate prize index based on where pointer landed
+  const normalizedAngle = (2 * Math.PI - (finalAngle % (2 * Math.PI))) % (2 * Math.PI);
+  const prizeIndex = Math.floor(normalizedAngle / segmentAngle);
   const prize = prizes[prizeIndex];
+
   resultEl.textContent = `You won $${prize}!`;
+  spinsLeft--;
+  currentPoints += prize;
 
-  const result = await logSpin(currentUser, prize);
-  if (result) {
-    currentPoints = result.score;
-    spinsLeft = result.spinsLeft;
-  }
+  localStorage.setItem(`user_${currentUser}`, JSON.stringify({
+    points: currentPoints,
+    spinsLeft: spinsLeft,
+    lastSpin: new Date().toISOString()
+  }));
 
+  updateLeaderboardEntry();
   updateUI();
-  updateLeaderboard();
 }
 
 function updateUI() {
