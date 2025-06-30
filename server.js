@@ -10,10 +10,7 @@ const app = express();
 const PORT = 3000;
 
 // Middleware
-const cors = require('cors');
-app.use(cors({
-  origin: 'https://lucky-wheel-1-a0wa.onrender.com'
-}));
+app.use(cors());
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
