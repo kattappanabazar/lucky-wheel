@@ -112,18 +112,19 @@ function spinWheel() {
 
   const spinDuration = 4000;
   const startTime = Date.now();
-  const rotations = 5;
+  const rotations = 5; // full rotations
   const segmentAngle = (2 * Math.PI) / prizes.length;
 
-  const prizeIndex = Math.floor(Math.pow(Math.random(), 1.5) * prizes.length);
-  const targetAngle = currentRotation + (rotations * 2 * Math.PI) + (prizeIndex * segmentAngle);
+  // 🔁 Choose a final angle at random
+  const randomOffset = Math.random() * (2 * Math.PI);
+  const targetAngle = currentRotation + (rotations * 2 * Math.PI) + randomOffset;
 
   function animate() {
     const now = Date.now();
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / spinDuration, 1);
     const easeOut = 1 - Math.pow(1 - progress, 3);
-    const angle = currentRotation + (easeOut * (targetAngle - currentRotation));
+    const angle = currentRotation + easeOut * (targetAngle - currentRotation);
 
     ctx.clearRect(0, 0, wheel.width, wheel.height);
     ctx.save();
@@ -136,8 +137,8 @@ function spinWheel() {
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
-      currentRotation = targetAngle;
-      finishSpin(prizeIndex);
+      currentRotation = angle % (2 * Math.PI); // 🔁 store the final rotation
+      finishSpin(currentRotation);
     }
   }
 
