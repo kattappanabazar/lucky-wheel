@@ -240,3 +240,5 @@ startGameBtn.addEventListener('click', async () => {
 
 // Initialize wheel drawing
 drawWheel();
+spinBtn.addEventListener('click', spinWheel);
+
