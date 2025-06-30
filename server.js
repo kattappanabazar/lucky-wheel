@@ -1,14 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
-
-app.options('*', cors()); // Handle preflight requests
-
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -16,14 +7,15 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// ✅ CORS SETUP (Fixes CORS properly)
 app.use(cors({
-  origin: 'https://lucky-wheel-1-a0wa.onrender.com',
+  origin: '*', // or use your exact domain here
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
-  credentials: true
+  credentials: false // use true only if you're sending cookies
 }));
 
-// Handle preflight requests (important!)
+// ✅ Handle preflight requests
 app.options('*', cors());
 
 app.use(bodyParser.json());
