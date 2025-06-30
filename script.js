@@ -13,7 +13,7 @@ const playerNameInput = document.getElementById('player-name');
 const startGameBtn = document.getElementById('start-game');
 
 // Config
-const API_BASE = 'https://lucky-wheel-lmaf.onrender.com';
+const API_BASE = 'https://lucky-wheel-gz2p.onrender.com';
 const prizes = [100, 200, 300, 400, 500, 600, 700, 800];
 const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
 const CHALLENGE_DURATION = 30; // days
