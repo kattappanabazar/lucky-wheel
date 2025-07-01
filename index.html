@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lucky Wheel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="name-entry">
+    <h2>Enter Your Name</h2>
+    <input type="text" id="player-name" placeholder="Your name" />
+    <button id="start-game">Start</button>
+  </div>
+
+  <div id="game-container" style="display:none;">
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <button id="spin-btn">Spin</button>
+    <p id="result"></p>
+    <p>Spins left: <span id="spins-left"></span></p>
+    <p>Your points: <span id="current-points"></span></p>
+    <h3>Leaderboard</h3>
+    <table id="leaderboard-table">
+      <thead>
+        <tr><th>Rank</th><th>Name</th><th>Points</th><th>Last Spin</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
