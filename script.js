@@ -34,11 +34,14 @@ async function registerPlayer(name) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name })
     });
+
     if (!res.ok) throw new Error('Registration failed');
 
-    // Then fetch player info
-    const userData = await fetch(`${API_BASE}/player/${name}`).then(res => res.json());
-    return userData;
+    // 🧠 Immediately fetch full user data after registering
+    const userData = await fetch(`${API_BASE}/player/${name}`);
+    if (!userData.ok) throw new Error('Failed to fetch player after register');
+    return await userData.json();
+
   } catch (error) {
     console.error('Registration error:', error);
     alert('Failed to register. Please try again.');
