@@ -81,7 +81,7 @@ app.post('/spin', (req, res) => {
       [newPoints, newSpinsLeft, now, name],
       (err) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ name, score: newPoints, spinsLeft: newSpinsLeft });
+       res.json({ score: newPoints, spinsLeft: newSpinsLeft });
       }
     );
   });
