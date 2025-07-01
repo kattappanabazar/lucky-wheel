@@ -68,6 +68,7 @@ app.get('/player/:name', (req, res) => {
 // ✅ Spin & update player
 app.post('/spin', (req, res) => {
   const { name, prize } = req.body;
+
   db.get('SELECT * FROM players WHERE name = ?', [name], (err, player) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!player) return res.status(404).json({ error: 'Player not found' });
@@ -81,11 +82,14 @@ app.post('/spin', (req, res) => {
       [newPoints, newSpinsLeft, now, name],
       (err) => {
         if (err) return res.status(500).json({ error: err.message });
-       res.json({ score: newPoints, spinsLeft: newSpinsLeft });
+
+        // ✅ Send updated info
+        res.json({ score: newPoints, spinsLeft: newSpinsLeft });
       }
     );
   });
 });
+
 
 // ✅ Leaderboard
 app.get('/leaderboard', (req, res) => {
