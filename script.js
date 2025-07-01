@@ -60,14 +60,8 @@ async function logSpin(name, prize) {
 }
 
 async function fetchLeaderboard() {
-  try {
-    const res = await fetch(`${API_BASE}/leaderboard`);
-    if (!res.ok) throw new Error('Failed to fetch leaderboard');
-    return await res.json();
-  } catch (error) {
-    console.error('Leaderboard fetch error:', error);
-    return [];
-  }
+  const res = await fetch('https://your-backend-url.onrender.com/leaderboard');
+  return await res.json();
 }
 
 // UI & Game Functions
@@ -190,7 +184,7 @@ async function updateLeaderboard() {
     nameCell.textContent = user.name;
 
     const pointsCell = document.createElement('td');
-    pointsCell.textContent = `$${user.score}`;
+    pointsCell.textContent = `$${user.points}`; // ✅ fixed key here
 
     const lastSpinCell = document.createElement('td');
     lastSpinCell.textContent = new Date(user.lastSpin).toLocaleDateString();
