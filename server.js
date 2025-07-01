@@ -6,24 +6,24 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ CORS for your frontend origin
+// ✅ CORS configuration
 const corsOptions = {
-  origin: '*', // Allow all
+  origin: '*', // Change to specific domain if needed
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: false
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Preflight support
+app.options('*', cors(corsOptions));
 app.use(bodyParser.json());
 
-// ✅ Health check route
+// ✅ Health check
 app.get('/', (req, res) => {
   res.send('🎉 Lucky Wheel API is running!');
 });
 
-// ✅ SQLite database setup
+// ✅ SQLite setup
 const db = new sqlite3.Database('./wheel.db', (err) => {
   if (err) console.error('DB error:', err.message);
   else console.log('Connected to database.');
@@ -36,19 +36,36 @@ db.run(`CREATE TABLE IF NOT EXISTS players (
   lastSpin TEXT
 )`);
 
-// ✅ Register a player
+// ✅ Register player
 app.post('/register', (req, res) => {
   const { name } = req.body;
   db.run('INSERT OR IGNORE INTO players (name) VALUES (?)', [name], (err) => {
     if (err) return res.status(500).json({ error: err.message });
+
     db.get('SELECT * FROM players WHERE name = ?', [name], (err, row) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ score: row.points, spinsLeft: row.spinsLeft });
+      res.json({ name: row.name, score: row.points, spinsLeft: row.spinsLeft, lastSpin: row.lastSpin });
     });
   });
 });
 
-// ✅ Spin and update player
+// ✅ Get player details
+app.get('/player/:name', (req, res) => {
+  const { name } = req.params;
+  db.get('SELECT * FROM players WHERE name = ?', [name], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Player not found' });
+
+    res.json({
+      name: row.name,
+      score: row.points,
+      spinsLeft: row.spinsLeft,
+      lastSpin: row.lastSpin
+    });
+  });
+});
+
+// ✅ Spin & update player
 app.post('/spin', (req, res) => {
   const { name, prize } = req.body;
   db.get('SELECT * FROM players WHERE name = ?', [name], (err, player) => {
@@ -64,13 +81,13 @@ app.post('/spin', (req, res) => {
       [newPoints, newSpinsLeft, now, name],
       (err) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ score: newPoints, spinsLeft: newSpinsLeft });
+        res.json({ name, score: newPoints, spinsLeft: newSpinsLeft });
       }
     );
   });
 });
 
-// ✅ Get leaderboard
+// ✅ Leaderboard
 app.get('/leaderboard', (req, res) => {
   db.all(
     'SELECT name, points AS score, lastSpin FROM players ORDER BY points DESC LIMIT 10',
@@ -82,6 +99,7 @@ app.get('/leaderboard', (req, res) => {
   );
 });
 
+// ✅ Start server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`✅ Server running on http://localhost:${port}`);
 });
