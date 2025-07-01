@@ -191,11 +191,12 @@ async function updateLeaderboard() {
     nameCell.textContent = user.name;
 
     const pointsCell = document.createElement('td');
-    pointsCell.textContent = `$${user.points}`;
+    pointsCell.textContent = `$${user.score}`;
 
     const lastSpinCell = document.createElement('td');
-    lastSpinCell.textContent = new Date(user.lastSpin).toLocaleDateString();
-
+    lastSpinCell.textContent = user.lastSpin
+  ? new Date(user.lastSpin).toLocaleDateString()
+  : '-';
     row.appendChild(rankCell);
     row.appendChild(nameCell);
     row.appendChild(pointsCell);
@@ -226,7 +227,7 @@ startGameBtn.addEventListener('click', async () => {
     const userData = await registerPlayer(name);
     if (userData) {
       currentUser = name;
-      currentPoints = userData.points;
+      currentPoints = parseInt(userData.score || 0);
       spinsLeft = userData.spinsLeft;
 
       nameEntry.style.display = 'none';
