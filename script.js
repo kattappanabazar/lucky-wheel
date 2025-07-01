@@ -16,7 +16,7 @@ const startGameBtn = document.getElementById('start-game');
 const API_BASE = 'https://lucky-wheel-gz2p.onrender.com';
 const prizes = [100, 200, 300, 400, 500, 600, 700, 800];
 const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
-const CHALLENGE_DURATION = 30; // days
+const CHALLENGE_DURATION = 30;
 
 // State
 let spinning = false;
@@ -35,7 +35,10 @@ async function registerPlayer(name) {
       body: JSON.stringify({ name })
     });
     if (!res.ok) throw new Error('Registration failed');
-    return await res.json();
+
+    // Then fetch player info
+    const userData = await fetch(`${API_BASE}/player/${name}`).then(res => res.json());
+    return userData;
   } catch (error) {
     console.error('Registration error:', error);
     alert('Failed to register. Please try again.');
@@ -43,28 +46,38 @@ async function registerPlayer(name) {
   }
 }
 
-async function logSpin(name, prize) {
+async function logSpin(name, points, spinsLeft) {
   try {
-    const res = await fetch(`${API_BASE}/spin`, {
+    const res = await fetch(`${API_BASE}/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, prize })
+      body: JSON.stringify({
+        name,
+        points,
+        spinsLeft,
+        lastSpin: new Date().toISOString()
+      })
     });
     if (!res.ok) throw new Error('Spin logging failed');
     return await res.json();
   } catch (error) {
     console.error('Spin logging error:', error);
-    alert('Failed to log spin. Please try again.');
-    return { score: currentPoints, spinsLeft };
+    return { points: currentPoints, spinsLeft };
   }
 }
 
 async function fetchLeaderboard() {
-  const res = await fetch('https://your-backend-url.onrender.com/leaderboard');
-  return await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/leaderboard`);
+    if (!res.ok) throw new Error('Failed to fetch leaderboard');
+    return await res.json();
+  } catch (error) {
+    console.error('Leaderboard fetch error:', error);
+    return [];
+  }
 }
 
-// UI & Game Functions
+// Game Mechanics
 function drawWheel() {
   const centerX = wheel.width / 2;
   const centerY = wheel.height / 2;
@@ -106,10 +119,8 @@ function spinWheel() {
 
   const spinDuration = 4000;
   const startTime = Date.now();
-  const rotations = 5; // full rotations
+  const rotations = 5;
   const segmentAngle = (2 * Math.PI) / prizes.length;
-
-  // 🔁 Choose a final angle at random
   const randomOffset = Math.random() * (2 * Math.PI);
   const targetAngle = currentRotation + (rotations * 2 * Math.PI) + randomOffset;
 
@@ -131,7 +142,7 @@ function spinWheel() {
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
-      currentRotation = angle % (2 * Math.PI); // 🔁 store the final rotation
+      currentRotation = angle % (2 * Math.PI);
       finishSpin(currentRotation);
     }
   }
@@ -144,8 +155,6 @@ async function finishSpin(finalAngle) {
   spinBtn.disabled = false;
 
   const segmentAngle = (2 * Math.PI) / prizes.length;
-
-  // 🧠 Calculate prize index based on where pointer landed
   const normalizedAngle = (2 * Math.PI - (finalAngle % (2 * Math.PI))) % (2 * Math.PI);
   const prizeIndex = Math.floor(normalizedAngle / segmentAngle);
   const prize = prizes[prizeIndex];
@@ -154,14 +163,9 @@ async function finishSpin(finalAngle) {
   spinsLeft--;
   currentPoints += prize;
 
-  localStorage.setItem(`user_${currentUser}`, JSON.stringify({
-    points: currentPoints,
-    spinsLeft: spinsLeft,
-    lastSpin: new Date().toISOString()
-  }));
-
-  updateLeaderboardEntry();
+  await logSpin(currentUser, currentPoints, spinsLeft);
   updateUI();
+  updateLeaderboard();
 }
 
 function updateUI() {
@@ -184,7 +188,7 @@ async function updateLeaderboard() {
     nameCell.textContent = user.name;
 
     const pointsCell = document.createElement('td');
-    pointsCell.textContent = `$${user.points}`; // ✅ fixed key here
+    pointsCell.textContent = `$${user.points}`;
 
     const lastSpinCell = document.createElement('td');
     lastSpinCell.textContent = new Date(user.lastSpin).toLocaleDateString();
@@ -209,18 +213,17 @@ function updateTimer() {
 
   const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
   const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
   timeLeftEl.textContent = `${days} days ${hours} hours`;
 }
 
-// Start Game Event
+// Start Game Button
 startGameBtn.addEventListener('click', async () => {
   const name = playerNameInput.value.trim();
   if (name) {
     const userData = await registerPlayer(name);
     if (userData) {
       currentUser = name;
-      currentPoints = userData.score;
+      currentPoints = userData.points;
       spinsLeft = userData.spinsLeft;
 
       nameEntry.style.display = 'none';
@@ -240,7 +243,5 @@ startGameBtn.addEventListener('click', async () => {
   }
 });
 
-// Initialize wheel drawing
 drawWheel();
 spinBtn.addEventListener('click', spinWheel);
-
