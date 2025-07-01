@@ -154,21 +154,26 @@ async function finishSpin(finalAngle) {
   spinBtn.disabled = false;
 
   const segmentAngle = (2 * Math.PI) / prizes.length;
-  const normalizedAngle = (2 * Math.PI - (finalAngle % (2 * Math.PI))) % (2 * Math.PI);
+  const offset = Math.PI / 2; // pointer at top
+  const adjustedAngle = (finalAngle + offset) % (2 * Math.PI);
+  const normalizedAngle = (2 * Math.PI - adjustedAngle) % (2 * Math.PI);
   const prizeIndex = Math.floor(normalizedAngle / segmentAngle);
   const prize = prizes[prizeIndex];
 
   resultEl.textContent = `You won $${prize}!`;
+  spinsLeft--;
+  currentPoints += prize;
 
-  // ✅ SEND spin result to backend
-  const response = await logSpin(currentUser, prize);
-  currentPoints = response.score;
-  spinsLeft = response.spinsLeft;
+  localStorage.setItem(`user_${currentUser}`, JSON.stringify({
+    points: currentPoints,
+    spinsLeft: spinsLeft,
+    lastSpin: new Date().toISOString()
+  }));
 
-  // Update UI
+  updateLeaderboardEntry();
   updateUI();
-  await updateLeaderboard(); // ✅ refresh with updated data
 }
+
 
 function updateUI() {
   spinsLeftEl.textContent = spinsLeft;
