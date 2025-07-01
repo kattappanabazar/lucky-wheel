@@ -1,5 +1,5 @@
 
-const API_BASE = 'https://your-backend-url.onrender.com'; // Replace with actual backend URL
+const API_BASE = 'https://lucky-wheel-1-z88q.onrender.com'; // Replace with actual backend URL
 
 const wheel = document.getElementById('wheel');
 const ctx = wheel.getContext('2d');
