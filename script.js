@@ -49,23 +49,19 @@ async function registerPlayer(name) {
   }
 }
 
-async function logSpin(name, points, spinsLeft) {
+async function logSpin(name, prize) {
   try {
-    const res = await fetch(`${API_BASE}/update`, {
+    const res = await fetch(`${API_BASE}/spin`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        points,
-        spinsLeft,
-        lastSpin: new Date().toISOString()
-      })
+      body: JSON.stringify({ name, prize })
     });
     if (!res.ok) throw new Error('Spin logging failed');
-    return await res.json();
+    return await res.json(); // must include { score, spinsLeft }
   } catch (error) {
     console.error('Spin logging error:', error);
-    return { points: currentPoints, spinsLeft };
+    alert('Failed to log spin.');
+    return { score: currentPoints, spinsLeft };
   }
 }
 
@@ -163,12 +159,15 @@ async function finishSpin(finalAngle) {
   const prize = prizes[prizeIndex];
 
   resultEl.textContent = `You won $${prize}!`;
-  spinsLeft--;
-  currentPoints += prize;
 
-  await logSpin(currentUser, currentPoints, spinsLeft);
+  // ✅ SEND spin result to backend
+  const response = await logSpin(currentUser, prize);
+  currentPoints = response.score;
+  spinsLeft = response.spinsLeft;
+
+  // Update UI
   updateUI();
-  await updateLeaderboard(); // 🔁 refresh leaderboard with new scores
+  await updateLeaderboard(); // ✅ refresh with updated data
 }
 
 function updateUI() {
