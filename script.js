@@ -168,7 +168,7 @@ async function finishSpin(finalAngle) {
 
   await logSpin(currentUser, currentPoints, spinsLeft);
   updateUI();
-  updateLeaderboard();
+  await updateLeaderboard(); // 🔁 refresh leaderboard with new scores
 }
 
 function updateUI() {
