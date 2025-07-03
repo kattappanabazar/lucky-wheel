@@ -9,7 +9,7 @@ const leaderboardTable = document.querySelector('#leaderboard-table tbody');
 const timeLeftEl = document.getElementById('time-left');
 const nameEntry = document.getElementById('name-entry');
 const gameContainer = document.getElementById('game-container');
-const playerNameInput = document.getElementById('player-name');
+const playerContactInput = document.getElementById('player-contact');
 const startGameBtn = document.getElementById('start-game');
 
 // Config
@@ -37,7 +37,6 @@ async function registerPlayer(name) {
 
     if (!res.ok) throw new Error('Registration failed');
 
-    // 🧠 Immediately fetch full user data after registering
     const userData = await fetch(`${API_BASE}/player/${name}`);
     if (!userData.ok) throw new Error('Failed to fetch player after register');
     return await userData.json();
@@ -57,7 +56,7 @@ async function logSpin(name, prize) {
       body: JSON.stringify({ name, prize })
     });
     if (!res.ok) throw new Error('Spin logging failed');
-    return await res.json(); // must include { score, spinsLeft }
+    return await res.json();
   } catch (error) {
     console.error('Spin logging error:', error);
     alert('Failed to log spin.');
@@ -154,103 +153,8 @@ async function finishSpin(finalAngle) {
   spinBtn.disabled = false;
 
   const segmentAngle = (2 * Math.PI) / prizes.length;
-  
-  // ✅ Offset so pointer is at top (12 o'clock)
   const offset = Math.PI / 2;
   const adjustedAngle = (finalAngle + offset) % (2 * Math.PI);
   const normalizedAngle = (2 * Math.PI - adjustedAngle) % (2 * Math.PI);
   const prizeIndex = Math.floor(normalizedAngle / segmentAngle);
-  const prize = prizes[prizeIndex];
-
-  resultEl.textContent = `You won $${prize}!`;
-
-  // ✅ SEND spin result to backend
-  const response = await logSpin(currentUser, prize);
-  currentPoints = response.score;
-  spinsLeft = response.spinsLeft;
-
-  // Update UI
-  updateUI();
-  await updateLeaderboard(); // ✅ refresh with updated data
-}
-
-
-
-function updateUI() {
-  spinsLeftEl.textContent = spinsLeft;
-  currentPointsEl.textContent = `$${currentPoints}`;
-  spinBtn.disabled = spinsLeft <= 0;
-}
-
-async function updateLeaderboard() {
-  const data = await fetchLeaderboard();
-  leaderboardTable.innerHTML = '';
-
-  data.forEach((user, index) => {
-    const row = document.createElement('tr');
-
-    const rankCell = document.createElement('td');
-    rankCell.textContent = index + 1;
-
-    const nameCell = document.createElement('td');
-    nameCell.textContent = user.name;
-
-    const pointsCell = document.createElement('td');
-    pointsCell.textContent = `$${user.score}`;
-
-    const lastSpinCell = document.createElement('td');
-    lastSpinCell.textContent = user.lastSpin
-  ? new Date(user.lastSpin).toLocaleDateString()
-  : '-';
-    row.appendChild(rankCell);
-    row.appendChild(nameCell);
-    row.appendChild(pointsCell);
-    row.appendChild(lastSpinCell);
-    leaderboardTable.appendChild(row);
-  });
-}
-
-function updateTimer() {
-  const now = new Date();
-  const timeLeft = challengeEndDate - now;
-
-  if (timeLeft <= 0) {
-    timeLeftEl.textContent = "Challenge ended!";
-    spinBtn.disabled = true;
-    return;
-  }
-
-  const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  timeLeftEl.textContent = `${days} days ${hours} hours`;
-}
-
-// Start Game Button
-startGameBtn.addEventListener('click', async () => {
-  const name = playerNameInput.value.trim();
-  if (name) {
-    const userData = await registerPlayer(name);
-    if (userData) {
-      currentUser = name;
-      currentPoints = parseInt(userData.score || 0);
-      spinsLeft = userData.spinsLeft;
-
-      nameEntry.style.display = 'none';
-      gameContainer.style.display = 'block';
-
-      challengeEndDate = new Date();
-      challengeEndDate.setDate(challengeEndDate.getDate() + CHALLENGE_DURATION);
-
-      updateUI();
-      drawWheel();
-      updateLeaderboard();
-      updateTimer();
-      setInterval(updateTimer, 1000);
-    }
-  } else {
-    alert('Please enter your name');
-  }
-});
-
-drawWheel();
-spinBtn.addEventListener('click', spinWheel);
+  const prize = prizes[prizeIndex]
